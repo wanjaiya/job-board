@@ -6,63 +6,77 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   =  "../node_modules/.prisma/client"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+
 model User {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  id            String          @id @default(cuid())
   name          String?
+  username      String?         @unique
   email         String?         @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
 
+  onboarded   Boolean   @default(false)
+  userType   UserType?
  
+  Company      Company? 
+  JobSeeker    JobSeeker?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
  
+enum UserType {
+  COMPANY
+  JOBSEEKER
+  ADMIN
+}
 model Account {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String  @db.ObjectId
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.String
-  access_token      String? @db.String
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.String
-  session_state     String?
+  id                       String  @id @default(cuid())
+  userId                   String  @unique
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? @db.Text
+  access_token             String? @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User?   @relation(fields: [userId], references: [id])
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
  
 model Session {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  id           String   @id @default(cuid())
   sessionToken String   @unique
-  userId       String   @db.ObjectId
+  userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id])
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+ 
+  @@index([userId])
 }
  
 model VerificationToken {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
   identifier String
   token      String
   expires    DateTime
@@ -70,3 +84,34 @@ model VerificationToken {
   @@unique([identifier, token])
 }
  
+model Company{
+  id        String   @id @default(cuid())
+  name      String
+  location  String 
+  about     String
+  logo      String
+  website   String?
+  xAccount  String?
+ 
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JobSeeker{
+  id        String   @id @default(cuid())
+  name      String
+  resume    String
+  about     String
+  portfolio String?
+  linkedin  String?
+  github    String?
+ 
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

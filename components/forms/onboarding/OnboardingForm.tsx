@@ -5,9 +5,13 @@ import logo from "@/public/logo.png";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
 import { UserTypeSelection } from "./UserTypeForm";
 import CompanyForm from "./CompanyForm";
+import { JobSeekerForm } from "./JobSeekerForm";
 
-type UserSelectionType = "Candidate" | "Employer" | null;
+
+type UserSelectionType = "JobSeeker" | "Company" | null;
 export function OnboardingForm() {
+
+
   const [step, setStep] = useState(1);
   const [userType, setUserType] = useState<UserSelectionType>(null);
 
@@ -21,8 +25,8 @@ export function OnboardingForm() {
       case 1:
         return <UserTypeSelection onSelect={handleUserTypeSelection} />;
       case 2:
-        return userType === "Candidate" ? (
-          <p>Candidate form</p>
+        return userType === "JobSeeker" ? (
+          <JobSeekerForm />
         ) : (
           <CompanyForm />
         );
